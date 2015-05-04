@@ -1,11 +1,10 @@
 #!/bin/bash
 
 sha1() {
-  pos() {
-    [ ${1} -lt 0 ] && echo $((${1} * -1)) || echo ${1}
-  }
   rotl1() {
-    lss=$((${1} << 1))
+    local lss=$((${1} << 1))
+    local ls
+    local rs
     if [ ${lss} -ge $((2**31)) ]; then
       ls=$((-1 * (2**32 - lss)))
     elif [ ${lss} -lt $((-(2**31))) ]; then
@@ -13,22 +12,24 @@ sha1() {
     else
       ls=${lss}
     fi
-    rs=$(pos $((${1} >> 31)))
-    echo $((${ls} | ${rs}))
+    rs=$((${1} >> 31))
+    [ ${rs} -lt 0 ] && rs=$((rs * -1))
+    rotl1v=$((${ls} | ${rs}))
   }
   rotl() {
-    retval=${1}
+    rotlv=${1}
+    local i
     for ((i=${2};i>0;i--)); do
-      retval=$(rotl1 ${retval})
+      rotl1 ${rotlv}
+      rotlv=${rotl1v}
     done
-    echo ${retval}
   }
   sha1f() {
     case ${1} in
-      0) echo $(((${2} & ${3}) ^ (~${2} & ${4}))); return;;
-      1) echo $((${2} ^ ${3} ^ ${4})); return;;
-      2) echo $(((${2} & ${3}) ^ (${2} & ${4}) ^ (${3} & ${4}))); return;;
-      3) echo $((${2} ^ ${3} ^ ${4})); return;;
+      0) sha1fv=$(((${2} & ${3}) ^ (~${2} & ${4}))); return;;
+      1) sha1fv=$((${2} ^ ${3} ^ ${4})); return;;
+      2) sha1fv=$(((${2} & ${3}) ^ (${2} & ${4}) ^ (${3} & ${4}))); return;;
+      3) sha1fv=$((${2} ^ ${3} ^ ${4})); return;;
     esac
   }
   K=( 1518500249 1859775393 2400959708 3395469782 )
@@ -63,16 +64,21 @@ sha1() {
     done
     for ((t=16;t<80;t++)); do
       x=$((W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16]))
-      v=$(rotl ${x} 1)
+      rotl ${x} 1
+      v=${rotlv}
       eval "W[\${t}]=\${v}"
     done
     ((a=H0,b=H1,c=H2,d=H3,e=H4))
     for ((t=0;t<80;t++)); do
       s=$((t / 20))
-      T=$((($(rotl ${a} 5) + $(sha1f ${s} ${b} ${c} ${d}) + e + K[s] + W[t]) & 0xffffffff))
+      rotl ${a} 5
+      ra=${rotlv}
+      sha1f ${s} ${b} ${c} ${d}
+      T=$(((ra + sha1fv + e + K[s] + W[t]) & 0xffffffff))
       e=${d}
       d=${c}
-      c=$(rotl ${b} 30)
+      rotl ${b} 30
+      c=${rotlv}
       b=${a}
       a=${T}
     done
@@ -82,7 +88,7 @@ sha1() {
     H3=$(((H3 + d) & 0xffffffff))
     H4=$(((H4 + e) & 0xffffffff))
   done
-  printf "%x%x%x%x%x\n" ${H0} ${H1} ${H2} ${H3} ${H4}
+  printf "%08x%08x%08x%08x%08x\n" ${H0} ${H1} ${H2} ${H3} ${H4}
 }
 
 if [ "${0}" = "${BASH_SOURCE}" ]; then
