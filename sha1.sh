@@ -82,7 +82,7 @@ sha1() {
     H3=$(((H3 + d) & 0xffffffff))
     H4=$(((H4 + e) & 0xffffffff))
   done
-  printf "%8x%8x%8x%8x%8x\n" ${H0} ${H1} ${H2} ${H3} ${H4}
+  printf "%x%x%x%x%x\n" ${H0} ${H1} ${H2} ${H3} ${H4}
 }
 
 if [ "${0}" = "${BASH_SOURCE}" ]; then
