@@ -4,10 +4,24 @@ sha1() {
   pos() {
     [ ${1} -lt 0 ] && echo $((${1} * -1)) || echo ${1}
   }
-  rotl() {
-    ls=$((${1} << ${2}))
-    rs=$(pos $((${1} >> (32 - ${2}))))
+  rotl1() {
+    lss=$((${1} << 1))
+    if [ ${lss} -ge $((2**31)) ]; then
+      ls=$((-1 * (2**32 - lss)))
+    elif [ ${lss} -lt $((-(2**31))) ]; then
+      ls=$((lss + 2**32))
+    else
+      ls=${lss}
+    fi
+    rs=$(pos $((${1} >> 31)))
     echo $((${ls} | ${rs}))
+  }
+  rotl() {
+    retval=${1}
+    for ((i=${2};i>0;i--)); do
+      retval=$(rotl1 ${retval})
+    done
+    echo ${retval}
   }
   sha1f() {
     case ${1} in
