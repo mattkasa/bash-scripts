@@ -65,7 +65,6 @@ sha1() {
       x=$((W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16]))
       v=$(rotl ${x} 1)
       eval "W[\${t}]=\${v}"
-      echo "W[${t}]=${W[t]}"
     done
     ((a=H0,b=H1,c=H2,d=H3,e=H4))
     for ((t=0;t<80;t++)); do
