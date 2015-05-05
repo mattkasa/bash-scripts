@@ -26,6 +26,11 @@ sha1() {
       3) sha1fv=$((${2} ^ ${3} ^ ${4})); return;;
     esac
   }
+  add2() {
+    add2v=$((${1} + ${2}))
+    [ ${add2v} -ge $((2**31)) ] && add2v=$(((2**31 - (add2v - 2**31)) * -1))
+    [ ${add2v} -lt $((-1 * 2**31)) ] && add2v=$((2**32 + add2v))
+  }
   K=( 1518500249 1859775393 2400959708 3395469782 )
   while IFS=;read -d '' -n1 y; do
     ((m++))
@@ -68,7 +73,14 @@ sha1() {
       rotl ${a} 5
       ra=${rotlv}
       sha1f ${s} ${b} ${c} ${d}
-      T=$(((ra + sha1fv + e + K[s] + W[t]) & 0xffffffff))
+      add2 ${ra} ${sha1fv}
+      T1=${add2v}
+      add2 ${T1} ${e}
+      T2=${add2v}
+      add2 ${T2} ${K[s]}
+      T3=${add2v}
+      add2 ${T3} ${W[t]}
+      T=${add2v}
       e=${d}
       d=${c}
       rotl ${b} 30
@@ -76,11 +88,16 @@ sha1() {
       b=${a}
       a=${T}
     done
-    H0=$(((H0 + a) & 0xffffffff))
-    H1=$(((H1 + b) & 0xffffffff))
-    H2=$(((H2 + c) & 0xffffffff))
-    H3=$(((H3 + d) & 0xffffffff))
-    H4=$(((H4 + e) & 0xffffffff))
+    add2 ${H0} ${a}
+    H0=${add2v}
+    add2 ${H1} ${b}
+    H1=${add2v}
+    add2 ${H2} ${c}
+    H2=${add2v}
+    add2 ${H3} ${d}
+    H3=${add2v}
+    add2 ${H4} ${e}
+    H4=${add2v}
   done
   printf "%08x%08x%08x%08x%08x\n" ${H0} ${H1} ${H2} ${H3} ${H4}
 }
