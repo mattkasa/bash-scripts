@@ -2,16 +2,10 @@
 
 sha1() {
   rotl1() {
-    local lss=$((${1} << 1))
-    local ls
+    local ls=$((${1} << 1))
     local rs
-    if [ ${lss} -ge $((2**31)) ]; then
-      ls=$((-1 * (2**32 - lss)))
-    elif [ ${lss} -lt $((-(2**31))) ]; then
-      ls=$((lss + 2**32))
-    else
-      ls=${lss}
-    fi
+    [ ${ls} -ge $((2**31)) ] && ls=$(((2**31 - (ls - 2**31)) * -1))
+    [ ${ls} -lt $((-1 * 2**31)) ] && ls=$((2**32 + ls))
     rs=$((${1} >> 31))
     [ ${rs} -lt 0 ] && rs=$((rs * -1))
     rotl1v=$((${ls} | ${rs}))
