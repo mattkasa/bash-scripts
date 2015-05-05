@@ -98,7 +98,7 @@ sha1() {
     add2 ${H4} ${e}
     H4=${add2v}
   done
-  printf "%08x%08x%08x%08x%08x\n" ${H0} ${H1} ${H2} ${H3} ${H4}
+  printf "%08x%08x%08x%08x%08x\n" $((${H0} & 0xffffffff)) $((${H1} & 0xffffffff)) $((${H2} & 0xffffffff)) $((${H3} & 0xffffffff)) $((${H4} & 0xffffffff))
 }
 
 if [ "${0}" = "${BASH_SOURCE}" ]; then
